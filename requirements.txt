@@ -1,7 +1,10 @@
 streamlit
 transformers
 PyPDF2
-gTTS
 matplotlib
 wordcloud
 graphviz
+torch
+pyttsx3
+gtts
+pillow
