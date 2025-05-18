@@ -17,30 +17,20 @@ import torch
 import warnings
 
 warnings.filterwarnings("ignore", category=FutureWarning)
-st.write("Loading summarization model...")
+
+st.set_page_config(page_title="Smart Study App", layout="wide")
+st.title("📘 Smart Study App 📘")
 
 @st.cache_resource
 def load_models():
     try:
-        summarizer = pipeline(
-            "summarization",
-            model="facebook/bart-base"
-        )
-        translator = pipeline(
-            "translation_en_to_fr",
-            model="t5-base"
-        )
-        explainer = pipeline(
-            "text2text-generation",
-            model="google/flan-t5-base"
-        )
-        quizgen = pipeline(
-            "text2text-generation",
-            model="google/flan-t5-base"
-        )
+        summarizer = pipeline("summarization", model="facebook/bart-base")
+        translator = pipeline("translation_en_to_fr", model="t5-base")
+        explainer = pipeline("text2text-generation", model="google/flan-t5-base")
+        quizgen = pipeline("text2text-generation", model="google/flan-t5-base")
         return summarizer, translator, explainer, quizgen
     except Exception as e:
-        st.error(f"Failed to load pipeline: {e}")
+        st.error(f"Failed to load models: {e}")
         raise
 
 summarizer, translator, explainer, quizgen = load_models()
@@ -66,13 +56,16 @@ def translate_summary(summary):
 
 def text_to_speech(summary, engine="gtts", lang="en"):
     audio_path = "speech.mp3"
-    if engine == "gtts":
-        tts = gTTS(text=summary, lang=lang)
-        tts.save(audio_path)
-    elif engine == "pyttsx3":
-        engine = pyttsx3.init()
-        engine.save_to_file(summary, audio_path)
-        engine.runAndWait()
+    try:
+        if engine == "gtts":
+            tts = gTTS(text=summary, lang=lang)
+            tts.save(audio_path)
+        elif engine == "pyttsx3":
+            engine = pyttsx3.init()
+            engine.save_to_file(summary, audio_path)
+            engine.runAndWait()
+    except Exception as e:
+        st.warning(f"Error with TTS: {e}")
     return audio_path
 
 def create_flashcards(summary):
@@ -141,74 +134,80 @@ def save_session(summary, translated, flashcards):
         "flashcards": flashcards
     }
     st.session_state.history.append(record)
-    with open("history.json", "w", encoding="utf-8") as f:
-        json.dump(st.session_state.history, f, ensure_ascii=False, indent=2)
+    try:
+        with open("history.json", "w", encoding="utf-8") as f:
+            json.dump(st.session_state.history, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        st.warning(f"Could not save history: {e}")
 
 def load_history():
     if os.path.exists("history.json"):
-        with open("history.json", "r", encoding="utf-8") as f:
-            st.session_state.history = json.load(f)
+        try:
+            with open("history.json", "r", encoding="utf-8") as f:
+                st.session_state.history = json.load(f)
+        except Exception as e:
+            st.warning(f"Could not load history: {e}")
 
-st.title("📘 Smart Study App 📘")
 load_history()
 
-pdf = st.file_uploader("Upload PDF", type="pdf")
-keyword = st.text_input("Search Keyword")
+pdf = st.file_uploader("📤 Upload PDF", type="pdf")
+keyword = st.text_input("🔍 Search Keyword (optional)")
 
 if pdf:
     with st.spinner("Processing PDF..."):
         text = extract_text_from_pdf(pdf)
+
         if keyword:
             matches = keyword_search(text, keyword)
-            st.subheader("🔍 Keyword Matches 🔍")
+            st.subheader("🔍 Keyword Matches")
             for m in matches:
                 st.write("•", m)
 
         summary = summarize_text(text)
-        st.subheader("📄 Summary 📄")
+        st.subheader("📄 Summary")
         st.write(summary)
 
-        if st.checkbox("🌍 Translate to Russian 🌍"):
+        if st.checkbox("🌍 Translate to Russian"):
             translated = translate_summary(summary)
             st.subheader("🇷🇺 Translated Summary")
             st.write(translated)
         else:
             translated = ""
 
-        st.subheader("🗣 Text-to-Speech 🗣")
-        engine = st.radio("Select TTS engine", ["gTTS", "pyttsx3"])
-        lang = st.radio("Select language", ["en", "ru"])
+        st.subheader("🗣 Text-to-Speech")
+        engine = st.radio("Select TTS Engine", ["gTTS", "pyttsx3"])
+        lang = st.radio("Select Language", ["en", "ru"])
         audio_file = text_to_speech(summary, engine=engine.lower(), lang=lang)
         st.audio(audio_file)
 
-        st.subheader("🧠 Flashcards 🧠")
+        st.subheader("🧠 Flashcards")
         st.session_state.flashcards = create_flashcards(summary)
         for fc in st.session_state.flashcards:
             st.write(f"• **Q:** {fc['question']}  \n  **A:** {fc['answer']}")
 
-        st.subheader("📈 Word Frequency 📈")
+        st.subheader("📈 Word Frequency")
         plot_word_frequency(summary)
 
-        st.subheader("🗺 Mind Map 🗺")
+        st.subheader("🗺 Mind Map")
         key_ideas = summary.split(".")[:5]
         draw_mind_map(key_ideas)
 
-        st.subheader("🧠 Explain Like I’m 5 🧠")
+        st.subheader("🧠 Explain Like I’m 5")
         if st.button("Explain Simply"):
             st.success(feynman_explainer(summary))
 
-        st.subheader("❓ Generate Quiz ❓")
+        st.subheader("❓ Generate Quiz")
         if st.button("Make Quiz"):
             st.code(generate_quiz(summary), language="markdown")
 
-        st.subheader("📆 Spaced Repetition 📆")
+        st.subheader("📆 Spaced Repetition")
         review_flashcards()
         display_stats()
 
-        if st.button("💾 Save This Session 💾"):
+        if st.button("💾 Save This Session"):
             save_session(summary, translated, st.session_state.flashcards)
-            st.success("Saved!")
+            st.success("✅ Saved!")
 
-st.sidebar.header("🕓 History 🕓")
+st.sidebar.header("🕓 History")
 for entry in st.session_state.history[-3:]:
     st.sidebar.write(f"- {entry['timestamp']}")
