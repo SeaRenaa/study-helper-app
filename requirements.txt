@@ -1,6 +1,10 @@
-streamlit
-transformers
-torch
+transformers==4.51.3
+torch==2.7.0
+sentencepiece==0.2.0
+sacremoses==0.1.1
+numpy==2.2.0
+streamlit==1.45.1
+rich==14.0.0
 gtts
 PyPDF2
 matplotlib
@@ -8,7 +12,4 @@ graphviz
 pyttsx3
 pillow
 wordcloud
-sentencepiece
-sacremoses
-numpy
 huggingface_hub[hf_xet]
