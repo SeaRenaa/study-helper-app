@@ -16,15 +16,20 @@ from graphviz import Digraph
 import torch
 
 @st.cache_resource
+@st.cache_resource
 def load_models():
     summarizer = pipeline(
-       "summarization",
-       model="sshleifer/distilbart-cnn-12-6",
-       revision="a4f8f3e",
-       device=0 if torch.cuda.is_available() else -1)
-    translator = pipeline("translation", model="Helsinki-NLP/opus-mt-en-ru")
-    explainer = pipeline("text2text-generation", model="google/flan-t5-large")
-    quizgen = pipeline("text2text-generation", model="google/flan-t5-base")
+        "summarization",
+        model="sshleifer/distilbart-cnn-12-6")
+    translator = pipeline(
+        "translation_en_to_fr",
+        model="t5-base")
+    explainer = pipeline(
+        "text2text-generation",
+        model="google/flan-t5-base")
+    quizgen = pipeline(
+        "text2text-generation",
+        model="google/flan-t5-base")
     return summarizer, translator, explainer, quizgen
 
 summarizer, translator, explainer, quizgen = load_models()
