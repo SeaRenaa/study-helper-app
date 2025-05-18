@@ -14,7 +14,9 @@ import time
 import os
 from graphviz import Digraph
 import torch
+import warnings
 
+warnings.filterwarnings("ignore", category=FutureWarning)
 st.write("Loading summarization model...")
 
 @st.cache_resource
