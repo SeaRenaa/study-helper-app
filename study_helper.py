@@ -55,17 +55,28 @@ def translate_summary(summary):
     return translator(summary)[0]['translation_text']
 
 def text_to_speech(summary, engine="gtts", lang="en"):
-    audio_path = "speech.mp3"
-    try:
-        if engine == "gtts":
+    if engine.lower() == "gtts":
+        audio_path = "speech.mp3"
+        try:
             tts = gTTS(text=summary, lang=lang)
             tts.save(audio_path)
-        elif engine == "pyttsx3":
-            engine = pyttsx3.init()
-            engine.save_to_file(summary, audio_path)
-            engine.runAndWait()
-    except Exception as e:
-        st.warning(f"Error with TTS: {e}")
+        except Exception as e:
+            st.warning(f"gTTS Error: {e}")
+            return None
+    elif engine.lower() == "pyttsx3":
+        audio_path = "speech.wav"
+        try:
+            tts_engine = pyttsx3.init()
+            tts_engine.setProperty('rate', 150)
+            tts_engine.save_to_file(summary, audio_path)
+            tts_engine.runAndWait()
+        except Exception as e:
+            st.warning(f"pyttsx3 Error: {e}")
+            return None
+    else:
+        st.warning("Unsupported TTS engine selected.")
+        return None
+
     return audio_path
 
 def create_flashcards(summary):
@@ -178,7 +189,10 @@ if pdf:
         engine = st.radio("Select TTS Engine", ["gTTS", "pyttsx3"])
         lang = st.radio("Select Language", ["en", "ru"])
         audio_file = text_to_speech(summary, engine=engine.lower(), lang=lang)
-        st.audio(audio_file)
+        if audio_file:
+            st.audio(audio_file)
+        else:
+            st.error("Failed to generate audio.")
 
         st.subheader("🧠 Flashcards")
         st.session_state.flashcards = create_flashcards(summary)
