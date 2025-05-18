@@ -188,6 +188,6 @@ if pdf:
             save_session(summary, translated, st.session_state.flashcards)
             st.success("Saved!")
 
-st.sidebar.header("🕓 History")
+st.sidebar.header("🕓 History 🕓")
 for entry in st.session_state.history[-3:]:
     st.sidebar.write(f"- {entry['timestamp']}")
