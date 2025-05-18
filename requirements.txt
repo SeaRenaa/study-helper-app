@@ -8,3 +8,4 @@ graphviz
 pyttsx3
 pillow
 wordcloud
+sentencepiece
