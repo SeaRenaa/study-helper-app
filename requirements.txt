@@ -1,6 +1,6 @@
 streamlit
-transformers==4.40.0
-torch==2.2.2
+transformers
+torch
 gtts
 PyPDF2
 matplotlib
@@ -9,3 +9,6 @@ pyttsx3
 pillow
 wordcloud
 sentencepiece
+sacremoses
+numpy
+huggingface_hub[hf_xet]
