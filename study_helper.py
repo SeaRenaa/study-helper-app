@@ -39,7 +39,6 @@ def load_models():
             model="google/flan-t5-base"
         )
         return summarizer, translator, explainer, quizgen
-
     except Exception as e:
         st.error(f"Failed to load pipeline: {e}")
         raise
