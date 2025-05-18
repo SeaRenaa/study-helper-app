@@ -16,7 +16,10 @@ from graphviz import Digraph
 
 @st.cache_resource
 def load_models():
-    summarizer = pipeline("summarization")
+    summarizer = pipeline(
+        "summarization",
+        model="sshleifer/distilbart-cnn-12-6",
+        revision="a4f8f3e",)
     translator = pipeline("translation", model="Helsinki-NLP/opus-mt-en-ru")
     explainer = pipeline("text2text-generation", model="google/flan-t5-large")
     quizgen = pipeline("text2text-generation", model="google/flan-t5-base")
