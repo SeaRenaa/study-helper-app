@@ -58,8 +58,21 @@ def text_to_speech(summary, engine="gtts", lang="en"):
     if engine.lower() == "gtts":
         audio_path = "speech.mp3"
         try:
-            tts = gTTS(text=summary, lang=lang)
-            tts.save(audio_path)
+            if len(summary) > 4500:
+                chunks = [summary[i:i+4500] for i in range(0, len(summary), 4500)]
+                full_audio = BytesIO()
+                for idx, chunk in enumerate(chunks):
+                    tts = gTTS(text=chunk, lang=lang)
+                    chunk_path = f"chunk_{idx}.mp3"
+                    tts.save(chunk_path)
+                    with open(chunk_path, "rb") as f:
+                        full_audio.write(f.read())
+                    os.remove(chunk_path)
+                with open(audio_path, "wb") as final:
+                    final.write(full_audio.getvalue())
+            else:
+                tts = gTTS(text=summary, lang=lang)
+                tts.save(audio_path)
         except Exception as e:
             st.warning(f"gTTS Error: {e}")
             return None
@@ -224,4 +237,4 @@ if pdf:
 
 st.sidebar.header("🕓 History")
 for entry in st.session_state.history[-3:]:
-    st.sidebar.write(f"- {entry['timestamp']}")
+    st.sidebar.write(f"- {entry['timestamp']}"))
